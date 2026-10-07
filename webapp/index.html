@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#102a22" />
+    <meta name="description" content="A satirical 3D argument adventure in the Austrian countryside." />
+    <title>Woodman — Alpine Argument Simulator</title>
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23102a22'/%3E%3Cpath d='M5 25 13 9l4 8 3-5 7 13Z' fill='%23d7efb5'/%3E%3Cpath d='M14 27h4V14h-4z' fill='%23ff633f'/%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/src/game/ui/Game.css" />
+  </head>
+  <body>
+    <main id="game-shell" aria-label="Woodman game">
+      <canvas id="game-canvas" aria-label="3D Austrian countryside game world"></canvas>
+      <div class="sky-fallback" aria-hidden="true"></div>
+
+      <section id="loading" class="loading-panel" aria-live="polite">
+        <div class="loading-mark">W</div>
+        <p>Loading the Austrian countryside…</p>
+      </section>
+
+      <section id="start-screen" class="start-screen hidden" aria-labelledby="game-title">
+        <div class="start-card">
+          <p class="eyebrow">AN ALPINE ARGUMENT SIMULATOR</p>
+          <h1 id="game-title">WOODMAN</h1>
+          <p class="intro-copy">
+            Roam a tiny Austrian village. Challenge perfectly reasonable people. Unlock increasingly questionable
+            rhetorical techniques.
+          </p>
+          <button id="start-button" class="primary-button">Enter the debate</button>
+          <div class="control-grid" aria-label="Controls">
+            <span><kbd>WASD</kbd> Move</span>
+            <span><kbd>E</kbd> Argue</span>
+            <span><kbd>R</kbd> One-wheel</span>
+            <span><kbd>V</kbd> Vape</span>
+          </div>
+        </div>
+      </section>
+
+      <section id="hud" class="hud hidden" aria-label="Game status">
+        <div class="status-card">
+          <div class="identity-row">
+            <div class="level-badge"><span>LVL</span><strong id="level-value">1</strong></div>
+            <div>
+              <p class="small-label">WOODMAN</p>
+              <p id="rank-value" class="rank">Local nuisance</p>
+            </div>
+          </div>
+          <div class="meter-row">
+            <span>Vape</span>
+            <div class="meter"><i id="vape-fill"></i></div>
+            <b id="vape-value">82</b>
+          </div>
+          <div class="meter-row heat">
+            <span>Heat</span>
+            <div class="meter"><i id="heat-fill"></i></div>
+            <b id="heat-value">8</b>
+          </div>
+          <div class="meter-row battery">
+            <span>Wheel</span>
+            <div class="meter"><i id="battery-fill"></i></div>
+            <b id="battery-value">100</b>
+          </div>
+        </div>
+
+        <div class="quest-card">
+          <p class="small-label">TODAY'S PURPOSE</p>
+          <p id="objective">Find someone with a defensible opinion.</p>
+          <div id="encounter-pips" class="encounter-pips" aria-label="Arguments completed"></div>
+        </div>
+
+        <div id="ability-bar" class="ability-bar" aria-label="Unlocked techniques"></div>
+        <div class="play-controls" aria-label="Controls">
+          <span><kbd>WASD</kbd> Move</span>
+          <span><kbd>E</kbd> Argue</span>
+          <span><kbd>R</kbd> One-wheel</span>
+          <span><kbd>V</kbd> Vape</span>
+        </div>
+        <div id="interaction-prompt" class="interaction-prompt hidden"></div>
+        <div id="toast" class="toast hidden" role="status"></div>
+        <div id="condition-note" class="condition-note">In the sun · heating up</div>
+      </section>
+
+      <section id="dialogue" class="dialogue hidden" role="dialog" aria-modal="true" aria-labelledby="dialogue-topic">
+        <div class="dialogue-speaker">
+          <span id="dialogue-avatar">I</span>
+          <div>
+            <p id="dialogue-name">Inge</p>
+            <small id="dialogue-role">Schnitzel purist</small>
+          </div>
+        </div>
+        <div class="dialogue-content">
+          <div class="argument-head">
+            <div>
+              <p class="small-label">ARGUMENT</p>
+              <h2 id="dialogue-topic">Gravy on schnitzel</h2>
+            </div>
+            <div class="conviction">
+              <span>Conviction</span>
+              <div><i id="argument-fill"></i></div>
+            </div>
+          </div>
+          <p id="dialogue-line" class="dialogue-line"></p>
+          <p id="dialogue-aside" class="dialogue-aside"></p>
+          <div id="dialogue-choices" class="dialogue-choices"></div>
+          <div id="dialogue-abilities" class="dialogue-abilities"></div>
+        </div>
+      </section>
+
+      <section id="qte" class="qte hidden" aria-label="One-wheel balance challenge">
+        <p class="eyebrow">UNSCHEDULED WOBBLE</p>
+        <h2>Find your balance</h2>
+        <div class="qte-track"><i class="safe-zone"></i><b id="qte-marker"></b></div>
+        <p>Press <kbd>SPACE</kbd> in the green zone</p>
+      </section>
+
+      <section id="result" class="result hidden" role="dialog" aria-modal="true">
+        <div class="result-card">
+          <p id="result-kicker" class="eyebrow">ARGUMENT COMPLETE</p>
+          <h2 id="result-title">Technically undefeated</h2>
+          <p id="result-copy"></p>
+          <div id="unlock-card" class="unlock-card hidden"></div>
+          <button id="result-button" class="primary-button">Return to village</button>
+        </div>
+      </section>
+
+      <section id="finale" class="result hidden" role="dialog" aria-modal="true">
+        <div class="result-card finale-card">
+          <p class="eyebrow">ALPINE CONSENSUS ACHIEVED</p>
+          <h2>The village needs a minute.</h2>
+          <p>
+            You have challenged four residents, depleted several social batteries, and briefly listened to a doctor. The
+            Woodman is now a Local Legend.
+          </p>
+          <button id="restart-button" class="primary-button">Argue again</button>
+        </div>
+      </section>
+
+      <div id="heat-vignette" class="heat-vignette" aria-hidden="true"></div>
+      <div id="engine-error" class="engine-error hidden" role="alert">
+        The 3D engine could not load. Check your connection and reload.
+      </div>
+    </main>
+    <script type="module" src="/src/Game.ts"></script>
+  </body>
+</html>

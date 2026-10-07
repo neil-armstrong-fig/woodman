@@ -1,0 +1,37 @@
+packages:
+  - webapp
+
+catalogMode: strict
+minimumReleaseAge: 1440
+minimumReleaseAgeStrict: true
+minimumReleaseAgeIgnoreMissingTime: false
+blockExoticSubdeps: true
+trustLockfile: false
+
+allowBuilds:
+  # Vite receives the platform binary through esbuild's optional package.
+  esbuild: false
+
+catalog:
+  # ESLint's maintained JavaScript rules.
+  "@eslint/js": 10.0.1
+  # Node globals and built-in module types for Vite configuration.
+  "@types/node": 24.13.6
+  # Static analysis for JavaScript and TypeScript.
+  eslint: 10.11.0
+  # Disables ESLint rules which conflict with Prettier.
+  eslint-config-prettier: 10.1.8
+  # Browser and Node global definitions for ESLint.
+  globals: 17.12.0
+  # Browser 3D engine used to render and update the game world.
+  playcanvas: 2.23.0
+  # Repository-wide deterministic formatting.
+  prettier: 3.9.9
+  # Strict source type-checking; held below 7 until the ESLint parser supports it.
+  typescript: 6.0.3
+  # TypeScript parser and rules for ESLint.
+  typescript-eslint: 8.70.1
+  # Development server and production bundler.
+  vite: 8.2.2
+  # Fast Node-based tests for pure game rules.
+  vitest: 5.0.1

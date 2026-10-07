@@ -1,0 +1,26 @@
+{
+  "name": "woodman",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@12.3.4",
+  "engines": {
+    "node": ">=24.13.1 <25"
+  },
+  "scripts": {
+    "start": "pnpm --filter @woodman/webapp start",
+    "start:preview": "pnpm --filter @woodman/webapp start:preview",
+    "build": "pnpm checks && pnpm --filter @woodman/webapp compile",
+    "checks": "pnpm --recursive checks && pnpm format:check:root",
+    "lint": "pnpm --recursive lint",
+    "lint:fix": "pnpm --recursive lint:fix",
+    "format": "pnpm --recursive format && prettier --write \"*.{md,json,yaml}\"",
+    "format:check": "pnpm --recursive format:check && pnpm format:check:root",
+    "format:check:root": "prettier --check \"*.{md,json,yaml}\"",
+    "type-check": "pnpm --recursive type-check",
+    "test": "pnpm --recursive test"
+  },
+  "devDependencies": {
+    "prettier": "catalog:"
+  }
+}
