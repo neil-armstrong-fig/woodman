@@ -23,6 +23,7 @@ interface MovementDirection {
   readonly z: number;
 }
 
+const JOYSTICK_DEAD_ZONE = 0.18;
 const SCREEN_AXIS_COMPONENT = Math.SQRT1_2;
 
 export class WoodmanGame {
@@ -30,6 +31,7 @@ export class WoodmanGame {
   private readonly ui = new GameUi();
   private readonly village: Village;
   private readonly heldKeys = new Set<string>();
+  private joystick = {x: 0, y: 0};
   private state: GameState;
   private nearestNpc?: NpcActor;
   private toastRemaining = 0;
@@ -46,7 +48,7 @@ export class WoodmanGame {
       graphicsDeviceOptions: {antialias: true, alpha: false, powerPreference: "high-performance"},
     });
     this.village = new Village(this.app, this.state.completed);
-    this.bindControls();
+    this.bindControls(canvas);
   }
 
   public run(): void {
@@ -110,15 +112,22 @@ export class WoodmanGame {
     this.app.resizeCanvas();
   }
 
-  private bindControls(): void {
+  private bindControls(canvas: HTMLCanvasElement): void {
     window.addEventListener("keydown", event => this.handleKeyDown(event));
     window.addEventListener("keyup", event => this.heldKeys.delete(event.key.toLowerCase()));
+    window.addEventListener("blur", () => this.heldKeys.clear());
     window.addEventListener("resize", () => this.resize());
     this.ui.bindControls({
       start: () => this.start(),
       closeResult: () => this.closeResult(),
       restart: () => this.reset(),
+      pressKey: key => this.pressKey(key, false),
+      releaseKey: key => this.heldKeys.delete(key),
+      joystick: (x, y) => {
+        this.joystick = {x, y};
+      },
     });
+    canvas.addEventListener("pointerdown", event => this.handleCanvasTap(event));
   }
 
   private update(seconds: number): void {
@@ -160,7 +169,29 @@ export class WoodmanGame {
   }
 
   private movementDirection(): MovementDirection {
+    if (Math.hypot(this.joystick.x, this.joystick.y) > JOYSTICK_DEAD_ZONE) {
+      return screenDirection(this.joystick.x, this.joystick.y);
+    }
     return movementDirectionForKeys(this.heldKeys);
+  }
+
+  private handleCanvasTap(event: PointerEvent): void {
+    if (event.pointerType === "mouse" || !this.state.started || this.isModalOpen()) {
+      return;
+    }
+    const rect = this.app.graphicsDevice.canvas.getBoundingClientRect();
+    const tapped = this.village.npcAtScreenPoint(
+      {x: event.clientX - rect.left, y: event.clientY - rect.top},
+      this.state.completed,
+    );
+    if (!tapped) {
+      return;
+    }
+    if (tapped !== this.nearestNpc) {
+      this.toast(`Walk closer to ${tapped.encounter.npc}.`);
+      return;
+    }
+    this.openArgument(tapped.encounter.id);
   }
 
   private updateNeeds(seconds: number, moving: boolean): void {
@@ -211,10 +242,14 @@ export class WoodmanGame {
 
   private handleKeyDown(event: KeyboardEvent): void {
     const key = event.key.toLowerCase();
-    this.heldKeys.add(key);
     if (key === " " || MOVEMENT_KEYS.includes(key as (typeof MOVEMENT_KEYS)[number])) {
       event.preventDefault();
     }
+    this.pressKey(key, event.repeat);
+  }
+
+  private pressKey(key: string, repeat: boolean): void {
+    this.heldKeys.add(key);
     if (!this.state.started && (key === "enter" || key === " ")) {
       this.start();
       return;
@@ -227,7 +262,7 @@ export class WoodmanGame {
       this.selectChoice(Number(key) - 1);
       return;
     }
-    if (this.isModalOpen() || !this.state.started || event.repeat) {
+    if (this.isModalOpen() || !this.state.started || repeat) {
       return;
     }
     if (key === "e" && this.nearestNpc) {
@@ -363,6 +398,10 @@ export function movementDirectionForKeys(keys: ReadonlySet<string>): MovementDir
     screenX += 1;
   }
 
+  return screenDirection(screenX, screenY);
+}
+
+function screenDirection(screenX: number, screenY: number): MovementDirection {
   return {
     x: (screenX + screenY) * SCREEN_AXIS_COMPONENT,
     z: (screenY - screenX) * SCREEN_AXIS_COMPONENT,

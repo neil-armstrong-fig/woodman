@@ -6,6 +6,13 @@ import * as pc from "playcanvas";
 
 export type {NpcActor} from "@src/game/world/NpcActor";
 
+export interface ScreenPoint {
+  readonly x: number;
+  readonly y: number;
+}
+
+const TAP_RADIUS = 70;
+
 export class Village {
   private readonly camera: pc.Entity;
   private readonly scenery: VillageScenery;
@@ -59,6 +66,27 @@ export class Village {
 
   public nearestNpc(completedEncounters: readonly string[]): NpcActor | undefined {
     return this.actors.nearestNpc(completedEncounters);
+  }
+
+  public npcAtScreenPoint(point: ScreenPoint, completedEncounters: readonly string[]): NpcActor | undefined {
+    const cameraComponent = this.camera.camera;
+    if (!cameraComponent) {
+      return undefined;
+    }
+
+    let found: NpcActor | undefined;
+    let foundDistance = TAP_RADIUS;
+    const screen = new pc.Vec3();
+    for (const npcActor of this.actors.activeNpcs(completedEncounters)) {
+      const position = npcActor.entity.getPosition();
+      cameraComponent.worldToScreen(new pc.Vec3(position.x, position.y + 1, position.z), screen);
+      const distance = Math.hypot(screen.x - point.x, screen.y - point.y);
+      if (distance < foundDistance) {
+        found = npcActor;
+        foundDistance = distance;
+      }
+    }
+    return found;
   }
 
   public completeEncounter(encounterId: string): void {

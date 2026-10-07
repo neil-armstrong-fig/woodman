@@ -80,6 +80,16 @@
           <span><kbd>R</kbd> One-wheel</span>
           <span><kbd>V</kbd> Vape</span>
         </div>
+        <div class="touch-controls" aria-label="Touch controls">
+          <div id="touch-joystick" class="touch-joystick" aria-label="Movement joystick">
+            <i id="touch-joystick-knob"></i>
+          </div>
+          <div class="touch-actions">
+            <button type="button" data-key="e" data-tap>Argue</button>
+            <button type="button" data-key="r" data-tap>Wheel</button>
+            <button type="button" data-key="v" data-tap>Vape</button>
+          </div>
+        </div>
         <div id="interaction-prompt" class="interaction-prompt hidden"></div>
         <div id="toast" class="toast hidden" role="status"></div>
         <div id="condition-note" class="condition-note">In the sun · heating up</div>
@@ -115,7 +125,7 @@
         <p class="eyebrow">UNSCHEDULED WOBBLE</p>
         <h2>Find your balance</h2>
         <div class="qte-track"><i class="safe-zone"></i><b id="qte-marker"></b></div>
-        <p>Press <kbd>SPACE</kbd> in the green zone</p>
+        <p>Press <kbd>SPACE</kbd> or tap in the green zone</p>
       </section>
 
       <section id="result" class="result hidden" role="dialog" aria-modal="true">

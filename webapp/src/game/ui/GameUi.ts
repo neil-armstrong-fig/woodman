@@ -6,6 +6,9 @@ interface ControlCallbacks {
   readonly start: () => void;
   readonly closeResult: () => void;
   readonly restart: () => void;
+  readonly pressKey: (key: string) => void;
+  readonly releaseKey: (key: string) => void;
+  readonly joystick: (x: number, y: number) => void;
 }
 
 interface ArgumentCallbacks {
@@ -77,6 +80,70 @@ export class GameUi {
     this.startButton.addEventListener("click", callbacks.start);
     this.resultButton.addEventListener("click", callbacks.closeResult);
     this.restartButton.addEventListener("click", callbacks.restart);
+    this.qte.addEventListener("pointerdown", () => callbacks.pressKey(" "));
+    this.bindTouchButtons(callbacks);
+    this.bindJoystick(callbacks);
+  }
+
+  private bindJoystick(callbacks: ControlCallbacks): void {
+    const base = this.element("touch-joystick");
+    const knob = this.element("touch-joystick-knob");
+    let activePointer: number | undefined;
+
+    const move = (event: PointerEvent): void => {
+      if (event.pointerId !== activePointer) {
+        return;
+      }
+      const rect = base.getBoundingClientRect();
+      const radius = rect.width / 2;
+      let x = (event.clientX - rect.left - radius) / radius;
+      let y = (event.clientY - rect.top - radius) / radius;
+      const length = Math.hypot(x, y);
+      if (length > 1) {
+        x /= length;
+        y /= length;
+      }
+      knob.style.transform = `translate(${x * radius * 0.6}px, ${y * radius * 0.6}px)`;
+      callbacks.joystick(x, y);
+    };
+    const end = (event: PointerEvent): void => {
+      if (event.pointerId !== activePointer) {
+        return;
+      }
+      activePointer = undefined;
+      knob.style.transform = "";
+      callbacks.joystick(0, 0);
+    };
+
+    base.addEventListener("pointerdown", event => {
+      event.preventDefault();
+      activePointer = event.pointerId;
+      base.setPointerCapture(event.pointerId);
+      move(event);
+    });
+    base.addEventListener("pointermove", move);
+    base.addEventListener("pointerup", end);
+    base.addEventListener("pointercancel", end);
+  }
+
+  private bindTouchButtons(callbacks: ControlCallbacks): void {
+    for (const button of document.querySelectorAll<HTMLButtonElement>(".touch-controls button")) {
+      const key = button.dataset.key;
+      if (!key) {
+        continue;
+      }
+      button.addEventListener("pointerdown", event => {
+        event.preventDefault();
+        callbacks.pressKey(key);
+        if (button.dataset.tap !== undefined) {
+          callbacks.releaseKey(key);
+        }
+      });
+      for (const type of ["pointerup", "pointercancel", "pointerleave"]) {
+        button.addEventListener(type, () => callbacks.releaseKey(key));
+      }
+      button.addEventListener("contextmenu", event => event.preventDefault());
+    }
   }
 
   public showReady(): void {

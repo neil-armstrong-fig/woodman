@@ -160,6 +160,10 @@ export class VillageActors {
     });
   }
 
+  public activeNpcs(completedEncounters: readonly string[]): NpcActor[] {
+    return this.npcActors.filter(npcActor => !completedEncounters.includes(npcActor.encounter.id));
+  }
+
   public nearestNpc(completedEncounters: readonly string[]): NpcActor | undefined {
     const playerPosition = this.player.getPosition();
     let nearest: NpcActor | undefined;
